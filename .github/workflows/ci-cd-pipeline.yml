@@ -58,7 +58,8 @@ jobs:
             -Dsonar.projectKey=my_project_key \
             -Dsonar.sources=. \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -X
 
   deploy:
     runs-on: ubuntu-latest
