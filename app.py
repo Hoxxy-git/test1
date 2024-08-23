@@ -56,7 +56,5 @@ def list_users():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    
-    # AWS Elastic Beanstalk 환경에서 PORT 환경 변수 사용
     port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
