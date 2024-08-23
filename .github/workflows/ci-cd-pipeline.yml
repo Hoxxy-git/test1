@@ -53,6 +53,6 @@ jobs:
           # 환경이 존재하는지 확인하고, 없으면 생성
           if eb status | grep -q 'No environment found for'; then
             eb create testdeploy  # 새로운 환경 생성
-          fi
-          eb use testdeploy  # 환경을 기본 환경으로 설정
+            eb use testdeploy  # 환경을 기본 환경으로 설정
+          fi          
           eb deploy
