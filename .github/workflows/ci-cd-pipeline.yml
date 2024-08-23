@@ -39,12 +39,10 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Set JAVA_HOME and PATH for Java 17
+      - name: Set JAVA_HOME for SonarScanner
         run: |
           echo "JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64" >> $GITHUB_ENV
           echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-          export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64
-          export PATH=$JAVA_HOME/bin:$PATH
 
       - name: Verify Java Version
         run: java -version
@@ -59,11 +57,13 @@ jobs:
           curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
           unzip sonar-scanner-cli.zip
           mv sonar-scanner-4.6.2.2472-linux sonar-scanner
-          export PATH=$PATH:$PWD/sonar-scanner/bin
+          export PATH=$PWD/sonar-scanner/bin:$PATH
 
       - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64
+          PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64/bin:$PATH
         run: |
           java -version
           ./sonar-scanner/bin/sonar-scanner \
