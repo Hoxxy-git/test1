@@ -49,10 +49,10 @@ jobs:
           AWS_DEFAULT_REGION: "ap-northeast-2" # 서울 리전
         run: |
           pip install awsebcli
-          eb init -p python-3.11 my-flask-app --region ap-northeast-2
+          eb init -p python-3.11 my-test-app --region ap-northeast-2
           # 환경이 존재하는지 확인하고, 없으면 생성
           if eb status | grep -q 'No environment found for'; then
-            eb create testingdeploy  # 새로운 환경 생성
+            eb create testdeploy  # 새로운 환경 생성
           fi
-          eb use testingdeploy  # 환경을 기본 환경으로 설정
+          eb use testdeploy  # 환경을 기본 환경으로 설정
           eb deploy
