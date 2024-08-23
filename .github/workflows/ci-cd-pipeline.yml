@@ -27,7 +27,10 @@ jobs:
 
       - name: Install SonarScanner
         run: |
-          npm install -g sonar-scanner-cli
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+          unzip sonar-scanner-cli-4.7.0.2747-linux.zip
+          mv sonar-scanner-4.7.0.2747-linux sonar-scanner
+          export PATH=$PATH:`pwd`/sonar-scanner/bin
 
       - name: Run tests
         run: |
@@ -60,5 +63,3 @@ jobs:
           pip install awsebcli
           eb init -p python-3.12 my-flask-app --region ap-northeast-2
           eb deploy
-
-#######
