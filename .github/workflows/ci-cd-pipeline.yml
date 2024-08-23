@@ -45,6 +45,7 @@ jobs:
           echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
 
       - name: Verify Java Version
+        shell: bash
         run: java -version
 
       - name: Install dependencies
@@ -53,6 +54,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install SonarScanner
+        shell: bash
         run: |
           curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
           unzip sonar-scanner-cli.zip
@@ -64,6 +66,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64
           PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64/bin:$PATH
+        shell: bash
         run: |
           java -version
           ./sonar-scanner/bin/sonar-scanner \
