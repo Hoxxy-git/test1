@@ -50,11 +50,11 @@ jobs:
         run: |
           pip install awsebcli
           eb init -p python-3.11 my-test-app --region ap-northeast-2
-          if ! eb status my-test-app-env1 >/dev/null 2>&1; then
-            eb create my-test-app-env1 
-            eb use my-test-app-env1
+          if ! eb status my-test-app-env >/dev/null 2>&1; then
+            eb create my-test-app-env
+            eb use my-test-app-env
           else
-            eb use my-test-app-env1
+            eb use my-test-app-env
           fi
           eb deploy
           eb logs   # 배포 후 로그 출력
