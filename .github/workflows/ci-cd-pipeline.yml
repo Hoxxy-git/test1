@@ -50,11 +50,10 @@ jobs:
         run: |
           pip install awsebcli
           eb init -p python-3.11 my-test-app --region ap-northeast-2
-          # 환경이 존재하는지 확인하고, 없으면 생성
           if eb status | grep -q 'No environment found for'; then
-            eb create testdeploy  # 새로운 환경 생성
-            eb use testdeploy  # 새로 생성한 환경을 기본 환경으로 설정
+            eb create my-test-app-env  # 새로운 환경 생성
+            eb use my-test-app-env  # 새로 생성한 환경을 기본 환경으로 설정
           else
-            eb use testdeploy  # 기존 환경을 기본 환경으로 설정
+            eb use my-test-app-env  # 기존 환경을 기본 환경으로 설정
           fi
           eb deploy
