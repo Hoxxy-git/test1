@@ -25,14 +25,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-c-cpp@v2
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v1.11
         with:
-          args: >
-            -Dsonar.projectKey=my_flask_project
-            -Dsonar.sources=.
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          projectBaseDir: .
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECTKEY: my_flask_project
+          SONAR_ORGANIZATION: my_organization_name
 
   deploy:
     if: success() && github.event_name == 'push'
