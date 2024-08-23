@@ -39,14 +39,13 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Set JAVA_HOME and PATH for Java 17
+      - name: Set JAVA_HOME and PATH
         run: |
           echo "JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64" >> $GITHUB_ENV
           echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-          export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64
-          export PATH=$JAVA_HOME/bin:$PATH
 
       - name: Verify Java Version
+        shell: bash
         run: java -version
 
       - name: Install dependencies
@@ -55,23 +54,21 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install SonarScanner
+        shell: bash
         run: |
           curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
           unzip sonar-scanner-cli.zip
           mv sonar-scanner-4.6.2.2472-linux sonar-scanner
-          export PATH=$PATH:$PWD/sonar-scanner/bin
+          export PATH=$PWD/sonar-scanner/bin:$PATH
 
-      - name: Run SonarQube Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Create and Run SonarQube Scan Script
+        shell: bash
         run: |
-          java -version
-          ./sonar-scanner/bin/sonar-scanner \
-            -Dsonar.projectKey=my_project_key \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -X
+          echo "export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64" > run-sonar.sh
+          echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> run-sonar.sh
+          echo "./sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=my_project_key -Dsonar.sources=. -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} -X" >> run-sonar.sh
+          chmod +x run-sonar.sh
+          ./run-sonar.sh
 
   deploy:
     runs-on: ubuntu-latest
