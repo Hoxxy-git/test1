@@ -25,14 +25,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
+      - name: Run SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-c-cpp@v2
         with:
-          projectBaseDir: .
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECTKEY: my_flask_project
-          SONAR_ORGANIZATION: my_organization_name
+          args: >
+            -Dsonar.projectKey=my_flask_project
+            -Dsonar.sources=.
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   deploy:
     if: success() && github.event_name == 'push'
@@ -46,7 +46,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ap-northeast-2" # 서울 리전
+          AWS_DEFAULT_REGION: "ap-northeast-2"  # 서울 리전
         run: |
           pip install awsebcli
           eb init -p python-3.12 my-flask-app --region ap-northeast-2
