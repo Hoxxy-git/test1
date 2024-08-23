@@ -41,6 +41,7 @@ jobs:
           
           # 경로 설정
           export PATH=$PATH:`pwd`/sonar-scanner-4.7.0.2747-linux/bin
+          export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12-7/x64
 
       - name: Run tests
         run: |
@@ -49,6 +50,7 @@ jobs:
       - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12-7/x64
         run: |
           # SonarScanner가 위치한 경로를 명시적으로 사용
           ./sonar-scanner-4.7.0.2747-linux/bin/sonar-scanner \
