@@ -57,3 +57,4 @@ jobs:
             eb use my-test-app-env
           fi
           eb deploy
+          eb logs   # 배포 후 로그 출력
