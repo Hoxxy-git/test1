@@ -50,6 +50,6 @@ jobs:
         run: |
           pip install awsebcli
           eb init -p python-3.11 my-flask-app --region ap-northeast-2
-          eb create my-env-name3  # 새로운 환경 생성
-          eb use my-env-name3  # 새로운 환경을 기본 환경으로 설정
+          eb create my-env-name4  # 새로운 환경 생성
+          eb use my-env-name4  # 새로운 환경을 기본 환경으로 설정
           eb deploy
