@@ -3,10 +3,10 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   test-and-scan:
@@ -29,10 +29,10 @@ jobs:
         run: |
           # 1단계: SonarScanner 바이너리 다운로드
           wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
-          
+
           # 2단계: 압축 해제
           unzip sonar-scanner-cli-4.7.0.2747-linux.zip
-          
+
           # 3단계: 경로 설정
           export PATH=$PATH:`pwd`/sonar-scanner-4.7.0.2747-linux/bin
 
@@ -62,7 +62,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ap-northeast-2"  # 서울 리전
+          AWS_DEFAULT_REGION: "ap-northeast-2" # 서울 리전
         run: |
           pip install awsebcli
           eb init -p python-3.12 my-flask-app --region ap-northeast-2
