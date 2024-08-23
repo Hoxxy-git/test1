@@ -43,7 +43,8 @@ jobs:
         run: |
           echo "JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64" >> $GITHUB_ENV
           echo "PATH=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64/bin:$PATH" >> $GITHUB_ENV
-          export PATH=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64/bin:$PATH
+          export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64
+          export PATH=$JAVA_HOME/bin:$PATH
 
       - name: Verify Java Version
         shell: bash
@@ -70,12 +71,12 @@ jobs:
           PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12/x64/bin:$PATH
         run: |
           java -version
-          ./sonar-scanner/bin/sonar-scanner \
+          bash -c "./sonar-scanner/bin/sonar-scanner \
             -Dsonar.projectKey=my_project_key \
             -Dsonar.sources=. \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -X
+            -X"
 
   deploy:
     runs-on: ubuntu-latest
