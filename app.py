@@ -6,7 +6,7 @@ from wtforms import StringField, validators
 
 app = Flask(__name__)
 
-# 데이터베이스 설정
+# DB 설정
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///joleeus.db'
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
 db = SQLAlchemy(app)
