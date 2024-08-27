@@ -41,7 +41,7 @@ def login():
         </form>
     '''
 
-# XSS 취약점이 있는 페이지  
+# XSS 취약점이  있는 페이지
 @app.route('/greet')
 def greet():
     name = request.args.get('name', '')
@@ -54,7 +54,7 @@ def upload_file():
     filename = file.filename
     file.save(os.path.join('uploads', filename))
     return 'File uploaded successfully'
-
+#main 실행
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
