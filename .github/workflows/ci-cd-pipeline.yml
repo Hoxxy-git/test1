@@ -88,5 +88,5 @@ jobs:
           else
             eb use my-env-name
           fi
-          # 지정된 환경으로 배포
+          # 지정된 환경으로 배포하기
           eb deploy my-env-name --staged
