@@ -50,12 +50,18 @@ jobs:
         run: |
           if grep -q "vulnerabilities" snyk_results.json; then
             snyk code fix --file=app.py --json > snyk_fix_results.json
+
             git config --local user.email "kkamagui.0@gmail.com"
             git config --local user.name "kkamagui-0"
-            git add app.py
-            git commit -m "Auto-fixed vulnerabilities in app.py"
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
-            echo "수정되었습니다"
+
+            if git diff --exit-code app.py; then
+              echo "수정이 없습니다"
+            else
+              git add app.py
+              git commit -m "Auto-fixed vulnerabilities in app.py"
+              git push https://github.com/KKamagui-0/Project_Joleeus.git HEAD:master
+              echo "수정되었습니다"
+            fi
           else
             echo "No vulnerabilities found."
           fi
@@ -63,16 +69,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 8. 수정이 발생했는지 확인하고 메시지 출력하기
-      - name: Check if app.py was modified and print message
-        run: |
-          if git diff --name-only | grep -q "app.py"; then
-            echo "수정되었습니다"
-          else
-            echo "수정이 없습니다"
-          fi
-
-      # 9. Deploy to Elastic Beanstalk
+      # 8. Elastic Beanstalk에 배포
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -82,3 +79,14 @@ jobs:
           pip install awsebcli
           eb init -p python-3.11 joleeus-env --region ap-northeast-2
           eb deploy
+          
+      # 9. 취약점 수정 여부에 따라 SNS 알림 발송
+      - name: Trigger Lambda for SNS Notification
+        if: steps.snyk_scan.outputs.vulnerabilities-found == 'true'
+        run: |
+          aws lambda invoke --function-name Vulnerability_Discovered --payload fileb://payload.json response.json
+          cat response.json
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
