@@ -14,32 +14,36 @@ def call_huggingface_model(input_code):
         headers=headers,
         json={"inputs": input_code}
     )
-    result = response.json()
-
-    # 응답이 올바르게 처리되었는지 확인하고, 결과를 반환합니다.
-    if isinstance(result, list) and len(result) > 0 and "generated_text" in result[0]:
-        return result[0]["generated_text"]
-    else:
-        print(f"Error in Hugging Face API response: {result}")
-        return input_code  # 실패 시 원래 코드를 반환
+    return response.json()
 
 def fix_vulnerabilities(input_file):
     with open(input_file, "r") as file:
         snyk_results = json.load(file)
 
-    vulnerabilities = snyk_results.get("vulnerabilities", [])
+    # SARIF 파일에서 취약점 정보 추출
+    vulnerabilities = []
+    runs = snyk_results.get("runs", [])
+    for run in runs:
+        results = run.get("results", [])
+        for result in results:
+            locations = result.get("locations", [])
+            for location in locations:
+                physical_location = location.get("physicalLocation", {})
+                region = physical_location.get("region", {})
+                snippet = region.get("snippet", {}).get("text", "")
+                if snippet:
+                    vulnerabilities.append({
+                        "id": result.get("ruleId"),
+                        "line": snippet
+                    })
+
     if not vulnerabilities:
         print("No vulnerabilities found.")
         return
 
     with open("fixed_code.py", "w") as output_file:
         for vuln in vulnerabilities:
-            # 원래의 코드 라인을 가져옵니다. 여기에 유효성 검사를 추가합니다.
-            original_code = vuln.get('line', None)
-            if not original_code:
-                print(f"No code line found for vulnerability ID: {vuln['id']}")
-                continue
-
+            original_code = vuln['line']
             fixed_code = call_huggingface_model(original_code)
             output_file.write(fixed_code + "\n")
             print(f"Fixed vulnerability: {vuln['id']}")
