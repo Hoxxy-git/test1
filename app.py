@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, redirect, url_for
 import sqlite3
 import os
 
@@ -24,24 +24,12 @@ def login():
         conn = sqlite3.connect('example.db')
         c = conn.cursor()
         query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
-c.execute(query)
-    db.commit()
-    #tmap输出数据文件夹为‘E:\CLX\multi_Focused\img\tmap\try_1\fig&data'
-    tmap, results = tmap_feat.tmap_cal(nwpng_data="E:\\CLX\\multi_Focused\\img\\nwpng\\06.png",
-                                        tif_data="E:\\CLX\\multi_Focused\\img\\tif\\proCCimage.tif
+        c.execute(query)
         user = c.fetchone()
         conn.close()
 
         if user:
-return f'Welcome, {username}!'
-
-if __name__=='__main__':
-	app.run(debug=True, port=8081)
-
-
-
-
-
+            return f'Welcome, {username}!'
         else:
             return 'Invalid credentials!'
 
@@ -49,38 +37,33 @@ if __name__=='__main__':
         <form method="post">
             Username: <input type="text" name="username"><br>
             Password: <input type="password" name="password"><br>
-<input type="submit" value="Login">
-		</form></body></html>
-
-
-If the input look like '{"username":'. It means not valid json. In that case you need to return a 400 error code
-
-
-If the input look like '{"username":'. It means not valid json. In that case you need to return a 400 error code
-
-
-Try to validate each input, if required and if possible.
-
-Once validated, the email will be look like '{"username":'.
+            <input type="submit" value="Login">
         </form>
     '''
 
-# XSS 취약점이  있는 페이지
+# XSS 취약점이 있는 페이지
 @app.route('/greet')
 def greet():
     name = request.args.get('name', '')
-    return f'<h1>Hello, {name}!</h1>'
+    return f'<h1>Hello, {name}!</h1>'  # 이 코드에는 XSS 취약점이 존재합니다.
 
 # 파일 업로드 취약점이 있는 페이지
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
-    file = request.files['file']
-    filename = file.filename
-    file.save(os.path.join('uploads', filename))
-    return 'File uploaded successfully'
-#main 실행
+    if request.method == 'POST':
+        file = request.files['file']
+        filename = file.filename
+        file.save(os.path.join('uploads', filename))  # 이 코드에는 파일 업로드 취약점이 존재합니다.
+        return 'File uploaded successfully'
+    
+    return '''
+        <form method="post" enctype="multipart/form-data">
+            <input type="file" name="file"><br>
+            <input type="submit" value="Upload">
+        </form>
+    '''
+
+# 디버그 모드에서 실행 (취약점 포함)
 if __name__ == '__main__':
     init_db()
-app.run(debug=True)
-
-
+    app.run(debug=True)  # 디버그 모드에서 실행하는 것은 보안 취약점이 될 수 있습니다.
