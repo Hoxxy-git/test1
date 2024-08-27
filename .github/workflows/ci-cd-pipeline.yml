@@ -20,14 +20,13 @@ jobs:
         with:
           python-version: 3.11
 
-      # 3. 필요한 Python 패키지 설치 및 확인
+      # 3. 필요한 Python 패키지 설치
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip list  # 설치된 패키지 확인
 
-      # 4. Snyk CLI 설치 및 검증
+      # 4. Snyk CLI 설치
       - name: Install Snyk CLI
         run: |
           npm install -g snyk
@@ -79,5 +78,13 @@ jobs:
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
           pip install awsebcli
+          # EB 애플리케이션 및 환경 초기화
           eb init -p python-3.11 my-eb-app --region ap-northeast-2
-          eb deploy --staged
+          # 환경 이름을 명시적으로 지정
+          eb use my-env-name
+          # 환경이 존재하지 않으면 생성
+          if ! eb status my-env-name >/dev/null 2>&1; then
+            eb create my-env-name
+          fi
+          # 지정된 환경으로 배포
+          eb deploy my-env-name --staged
