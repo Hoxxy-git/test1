@@ -1,25 +1,28 @@
 import os
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, validators
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 
-# 데이터베이스 설정
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///secure_app.db'
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey')
-
-# SQLAlchemy 및 CSRF 보호 활성화
-db = SQLAlchemy(app)
+# CSRF 보호 활성화
 csrf = CSRFProtect(app)
 
-# 사용자 모델 정의
+# Flask 설정
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///secure_app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+# 사용자 모델
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
+    name = db.Column(db.String(80), nullable=False, unique=True)
 
-# 사용자 입력 폼 정의
+# 사용자 입력 폼
 class UserForm(FlaskForm):
     name = StringField('Name', [validators.InputRequired(), validators.Length(min=1, max=80)])
 
@@ -27,12 +30,14 @@ class UserForm(FlaskForm):
 def home():
     form = UserForm()
     if form.validate_on_submit():
-        name = form.name.data
-        new_user = User(name=name)
-        db.session.add(new_user)
-        db.session.commit()
-        return 'User added successfully!'
-    
+        try:
+            new_user = User(name=form.name.data)
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect(url_for('list_users'))
+        except IntegrityError:
+            db.session.rollback()
+            return "User already exists.", 400
     return render_template_string('''
         <form method="post">
             {{ form.hidden_tag() }}
@@ -56,5 +61,4 @@ def list_users():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=5000)

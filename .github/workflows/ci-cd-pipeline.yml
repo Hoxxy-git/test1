@@ -70,5 +70,3 @@ jobs:
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
           pip install awsebcli
-          eb init -p python-3.11 my-eb-app --region ap-northeast-2
-          eb deploy --staged
