@@ -50,10 +50,10 @@ jobs:
         run: |
           if grep -q "vulnerabilities" snyk_results.json; then
             snyk code fix --file=app.py --json > snyk_fix_results.json
-            cat snyk_fix_results.json  # 수정된 내용을 출력하여 확인
+            echo "snyk_fix_results.json file location:"
+            find $(pwd) -name snyk_fix_results.json
             git config --local user.email "kkamagui.0@gmail.com"
             git config --local user.name "kkamagui-0"
-            git diff app.py  # 파일 변경 확인
             git add .
             git commit -m "Auto-fixed vulnerabilities in app.py"
             git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
