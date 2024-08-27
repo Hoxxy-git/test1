@@ -38,24 +38,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 6. Snyk를 이용하여 코드 스캔
-      - name: Run Snyk Code Scan
-        run: snyk code test --json > snyk_results.json --debug || echo "Snyk scan found vulnerabilities but proceeding..."
+      # 6. Snyk를 이용하여 코드 스캔 및 수정
+      - name: Run Snyk Code Scan and Fix
+        run: |
+          snyk code test --json > snyk_results.json --debug || echo "Snyk scan found vulnerabilities but proceeding..."
+          snyk code test --json > snyk_results.json --json-file-output=snyk_results.json
+          snyk code fix --file=app.py
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      # 7. Snyk 스캔 결과에 따라 Hugging Face AI 모델로 코드 수정
-      - name: Analyze and Fix Vulnerabilities with Hugging Face
-        run: |
-          if grep -q "vulnerabilities" snyk_results.json; then
-            python fix_vulnerabilities_with_huggingface.py snyk_results.json app.py
-          else
-            echo "No vulnerabilities found."
-          fi
-        env:
-          HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
-
-      # 8. 수정된 app.py가 존재하는지 확인
+      # 7. 수정된 app.py가 존재하는지 확인
       - name: Check if app.py was modified
         id: check_fixed_code
         run: |
@@ -67,7 +59,7 @@ jobs:
           fi
         continue-on-error: true
 
-      # 9. 수정된 app.py가 있을 경우 커밋하고 푸시
+      # 8. 수정된 app.py가 있을 경우 커밋하고 푸시
       - name: Commit and Push modified app.py
         if: env.app_py_modified == 'true'
         run: |
@@ -79,8 +71,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 10. 수정된 app.py가 있을 경우 람다 함수 호출하여 SNS 알림 발송
-      # Python 코드를 실행하는 단계
+      # 9. 수정된 app.py가 있을 경우 람다 함수 호출하여 SNS 알림 발송
       - name: Prepare Payload for Lambda
         run: python prepare_payload.py
 
@@ -105,7 +96,7 @@ jobs:
         run: |
           pip install awsebcli
 
-      # 8. Elastic Beanstalk 초기화
+      # Elastic Beanstalk 초기화
       - name: Initialize Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -114,7 +105,7 @@ jobs:
         run: |
           eb init -p python-3.11 joleeus-env --region ap-northeast-2
 
-      # 9. Elastic Beanstalk 환경 상태 확인 및 생성
+      # Elastic Beanstalk 환경 상태 확인 및 생성
       - name: Check if Elastic Beanstalk Environment Exists
         id: check_env
         env:
@@ -145,7 +136,7 @@ jobs:
         run: |
           eb use joleeus-env
 
-      # 10. Elastic Beanstalk에 코드 배포
+      # Elastic Beanstalk에 코드 배포
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
