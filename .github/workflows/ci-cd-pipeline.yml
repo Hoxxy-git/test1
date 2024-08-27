@@ -89,17 +89,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 10. 수정된 코드가 있을 경우 람다 함수 호출하여 SNS 알림 발송
+      # Python 코드를 실행하는 단계
+      - name: Prepare Payload for Lambda
+        run: python prepare_payload.py
+
       - name: Trigger Lambda for SNS Notification
-        if: env.fixed_code_exists == 'true'
         run: |
-          python -c "
-import json
-with open('fixed_code.py', 'r') as file:
-    code_content = file.read()
-payload = {'modified_code': code_content}
-with open('payload.json', 'w') as json_file:
-    json.dump(payload, json_file)
-"
           aws lambda invoke --function-name Vulnerability_Discovered --payload fileb://payload.json response.json
           cat response.json
         env:
