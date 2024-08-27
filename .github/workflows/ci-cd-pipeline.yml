@@ -45,14 +45,32 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       # 7. Snyk 스캔 결과에 따라 Hugging Face AI 모델로 코드 수정
+      - name: Check for vulnerabilities
+        id: check_vulnerabilities
+        run: |
+          if grep -q "vulnerabilities" snyk_results.json; then
+            echo "vulnerabilities_found=true" >> $GITHUB_ENV
+          else
+            echo "vulnerabilities_found=false" >> $GITHUB_ENV
+          fi
+
       - name: Analyze and Fix Vulnerabilities with Hugging Face
-        if: always() && grep -q "vulnerabilities" snyk_results.json
+        if: env.vulnerabilities_found == 'true'
         run: |
           python fix_vulnerabilities_with_huggingface.py snyk_results.json
 
       # 8. 수정된 코드가 있다면 GitHub에 푸시
+      - name: Check if fixed code exists
+        id: check_fixed_code
+        run: |
+          if [ -f "fixed_code.py" ]; then
+            echo "fixed_code_exists=true" >> $GITHUB_ENV
+          else
+            echo "fixed_code_exists=false" >> $GITHUB_ENV
+          fi
+
       - name: Commit and Push fixed code
-        if: always() && [ -f "fixed_code.py" ]
+        if: env.fixed_code_exists == 'true'
         run: |
           git config --local user.email "kkamagui.0@gmail.com"
           git config --local user.name "KKamgui-0"
@@ -64,7 +82,7 @@ jobs:
 
       # 9. 람다 함수 호출하여 SNS 알림 발송
       - name: Trigger Lambda for SNS Notification
-        if: always() && [ -f "fixed_code.py" ]
+        if: env.fixed_code_exists == 'true'
         run: |
           aws lambda invoke --function-name Vulnerability_Discovered --payload file://fixed_code.py response.json
           cat response.json
