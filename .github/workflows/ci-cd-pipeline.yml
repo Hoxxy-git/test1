@@ -110,14 +110,31 @@ jobs:
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
           eb init -p python-3.11 my-eb-app --region ap-northeast-2
-          
-      - name: Create or Use Existing Elastic Beanstalk Environment
+
+      - name: Check if Elastic Beanstalk Environment Exists
+        id: check_env
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
-          eb status <your-real-env-name> || eb create <your-real-env-name> --region ap-northeast-2 --platform "python-3.11" --single
+          eb status <your-real-env-name> || echo "not_found"
+
+      - name: Create Elastic Beanstalk Environment if Not Found
+        if: steps.check_env.outputs.status == 'not_found'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          eb create <your-real-env-name> --region ap-northeast-2 --platform "python-3.11" --single
+
+      - name: Use Elastic Beanstalk Environment
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
           eb use <your-real-env-name>
 
       - name: Deploy to Elastic Beanstalk
@@ -127,5 +144,6 @@ jobs:
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
           eb deploy --staged
+
 
 
