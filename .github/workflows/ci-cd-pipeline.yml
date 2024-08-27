@@ -61,10 +61,15 @@ jobs:
 
       # 8. 람다 함수 호출하여 SNS 알림 발송
       - name: Trigger Lambda for SNS Notification
-        if: success()
-        run: |
+      if: success() && [ -f "fixed_code.py" ]
+      run: |
+        if [ -f "fixed_code.py" ]; then
           aws lambda invoke --function-name Vulnerability_Discovered --payload file://fixed_code.py response.json
           cat response.json
+        else
+          echo "Error: fixed_code.py not found! Skipping Lambda invocation."
+          exit 1
+        fi
 
   deploy:
     runs-on: ubuntu-latest
