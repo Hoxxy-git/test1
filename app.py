@@ -41,7 +41,7 @@ def login():
         </form>
     '''
 
-# XSS 취약점이 있는 페이지
+# XSS 취약점이 있는 페이지  
 @app.route('/greet')
 def greet():
     name = request.args.get('name', '')
