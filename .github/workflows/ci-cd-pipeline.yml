@@ -20,63 +20,48 @@ jobs:
         with:
           python-version: 3.11
 
-      # 3. Snyk CLI 설치 및 설정
-      - name: Install Snyk CLI
-        run: |
-          npm install -g snyk
-          export PATH="$PATH:$(npm bin -g)"
-          snyk --version
-
-      # 4. 필요한 Python 패키지 설치
+      # 3. 필요한 Python 패키지 설치
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 5. Snyk를 이용하여 코드 스캔
+      # 4. Snyk를 이용하여 코드 스캔
       - name: Run Snyk Code Scan
         run: |
           snyk code test --json > snyk_results.json
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      # 6. Snyk 스캔 결과에 따라 Hugging Face AI 모델로 코드 수정
+      # 5. Snyk 스캔 결과에 따라 Hugging Face AI 모델로 코드 수정
       - name: Analyze and Fix Vulnerabilities with Hugging Face
         run: |
           if grep -q "vulnerabilities" snyk_results.json; then
             python fix_vulnerabilities_with_huggingface.py snyk_results.json
           fi
 
-      # 7. 수정된 코드가 있다면 GitHub에 푸시
+      # 6. 수정된 코드가 있다면 GitHub에 푸시
       - name: Commit and Push fixed code
-        if: always()
         run: |
           if [ -f "fixed_code.py" ]; then
-            git config --local user.email "your-email@example.com"
-            git config --local user.name "Your Name"
-            git add .
+            git config --local user.email "kkamagui.0@gmail.com"
+            git config --local user.name "KKamgui-0"
+            git add fixed_code.py
             git commit -m "Auto-fixed vulnerabilities"
             git push origin HEAD:master
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 8. Lambda 함수 호출하여 SNS 알림 발송
+      # 7. 람다 함수 호출하여 SNS 알림 발송
       - name: Trigger Lambda for SNS Notification
-        if: success() && [ -f "fixed_code.py" ]
         run: |
           if [ -f "fixed_code.py" ]; then
             aws lambda invoke --function-name Vulnerability_Discovered --payload file://fixed_code.py response.json
             cat response.json
-          else
-            echo "Error: fixed_code.py not found! Skipping Lambda invocation."
-            exit 1
           fi
 
   deploy:
     runs-on: ubuntu-latest
     needs: test-and-scan
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -89,5 +74,5 @@ jobs:
         run: |
           pip install awsebcli
           eb init -p python-3.11 my-eb-app --region ap-northeast-2
-          eb use my-eb-app-env
+          eb use my-env-name
           eb deploy --staged
