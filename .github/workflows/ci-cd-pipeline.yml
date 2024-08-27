@@ -50,11 +50,11 @@ jobs:
         run: |
           if grep -q "vulnerabilities" snyk_results.json; then
             snyk code fix --file=app.py --json > snyk_fix_results.json
-            git config --local user.email "your-email@example.com"
-            git config --local user.name "Your Name"
+            git config --local user.email "kkamagui.0@gmail.com"
+            git config --local user.name "kkamagui-0"
             git add app.py
             git commit -m "Auto-fixed vulnerabilities in app.py"
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/your-username/your-repo.git HEAD:master
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
           else
             echo "No vulnerabilities found."
           fi
@@ -62,7 +62,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 8. Deploy to Elastic Beanstalk
+      # 8. Elastic Beanstalk에 배포
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
