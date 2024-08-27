@@ -1,46 +1,64 @@
-from flask import Flask, request, render_template, send_file
-import sqlite3
 import os
+from flask import Flask, request, render_template_string, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import FlaskForm, CSRFProtect
+from wtforms import StringField, validators
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 
-# 취약점 1: SQL 인젝션 취약점
-@app.route('/user/<username>')
-def show_user_profile(username):
-    # 사용자가 입력한 값을 그대로 SQL 쿼리에 사용
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT * FROM users WHERE username = '{username}'")
-    user = cursor.fetchone()
-    conn.close()
-    
-    if user:
-        return f'User: {user[0]}, Email: {user[1]}'
-    else:
-        return 'User not found', 404
+# CSRF 보호 활성화
+csrf = CSRFProtect(app)
 
-# 취약점 2: 경로 탐색 (Path Traversal)
-@app.route('/file/<path:filename>')
-def get_file(filename):
-    # 입력된 파일명을 그대로 경로로 사용
-    file_path = os.path.join('uploads', filename)
-    if os.path.exists(file_path):
-        return send_file(file_path)
-    else:
-        return 'File not found', 404
+# Flask 설정
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///secure_app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# 취약점 3: 입력 데이터 검증 부족
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    file = request.files['file']
-    file.save(os.path.join('uploads', file.filename))
-    return 'File uploaded successfully'
+db = SQLAlchemy(app)
 
-# 취약점 4: XSS (Cross-Site Scripting)
-@app.route('/greet', methods=['GET'])
-def greet():
-    name = request.args.get('name', '')
-    return f'<h1>Hello, {name}!</h1>'
+# 사용자 모델
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False, unique=True)
+
+# 사용자 입력 폼
+class UserForm(FlaskForm):
+    name = StringField('Name', [validators.InputRequired(), validators.Length(min=1, max=80)])
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    form = UserForm()
+    if form.validate_on_submit():
+        try:
+            new_user = User(name=form.name.data)
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect(url_for('list_users'))
+        except IntegrityError:
+            db.session.rollback()
+            return "User already exists.", 400
+    return render_template_string('''
+        <form method="post">
+            {{ form.hidden_tag() }}
+            Name: {{ form.name(size=20) }}
+            <input type="submit" value="Add User">
+        </form>
+    ''', form=form)
+
+@app.route('/users')
+def list_users():
+    users = User.query.all()
+    return render_template_string('''
+        <h1>Users</h1>
+        <ul>
+            {% for user in users %}
+                <li>{{ user.name }}</li>
+            {% endfor %}
+        </ul>
+    ''', users=users)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+    app.run(host='0.0.0.0', port=5000)
