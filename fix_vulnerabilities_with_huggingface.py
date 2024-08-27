@@ -15,42 +15,45 @@ def call_huggingface_model(input_code):
         json={"inputs": input_code}
     )
     
-    # 응답이 리스트 형태로 반환될 수 있으므로, 이를 처리합니다.
-    try:
-        response_json = response.json()
-        if isinstance(response_json, list) and len(response_json) > 0:
-            return response_json[0].get("generated_text", "")
-        else:
-            print(f"Unexpected response format: {response_json}")
-            return None
-    except ValueError:
-        print(f"Failed to decode JSON: {response.text}")
-        return None
+    # 응답 결과를 로그로 출력
+    print("Hugging Face 모델 응답:", response.json())
+    
+    return response.json()
 
-def fix_vulnerabilities(sarif_file_path):
-    with open(sarif_file_path, "r") as file:
+def fix_vulnerabilities(input_file):
+    with open(input_file, "r") as file:
         snyk_results = json.load(file)
 
-    vulnerabilities = []
-    for run in snyk_results.get("runs", []):
-        for result in run.get("results", []):
-            vulnerabilities.append(result)
+    # Snyk 결과를 로그로 출력
+    print("Snyk 결과:", json.dumps(snyk_results, indent=2))
 
+    vulnerabilities = snyk_results.get("runs", [])[0].get("results", [])
     if not vulnerabilities:
         print("No vulnerabilities found.")
         return
 
     with open("fixed_code.py", "w") as output_file:
         for vuln in vulnerabilities:
-            original_code = vuln['message']['text']
+            # 취약한 코드 라인 가져오기
+            physical_location = vuln['locations'][0]['physicalLocation']
+            start_line = physical_location['region']['startLine']
+            file_path = physical_location['artifactLocation']['uri']
+            
+            with open(file_path, "r") as source_file:
+                lines = source_file.readlines()
+                original_code = lines[start_line - 1].strip()
+            
+            # Hugging Face 모델 호출 및 수정 코드 적용
             fixed_code = call_huggingface_model(original_code)
-            if fixed_code:
-                output_file.write(fixed_code + "\n")
-                print(f"Fixed vulnerability: {vuln['ruleId']}")
+            
+            if isinstance(fixed_code, list) and len(fixed_code) > 0:
+                fixed_code = fixed_code[0].get("generated_text", "")
             else:
-                output_file.write(original_code + "\n")
-                print(f"Failed to fix vulnerability: {vuln['ruleId']}, using original code.")
+                print(f"Unexpected response format for vulnerability {vuln['ruleId']}")
+                continue
+            
+            output_file.write(fixed_code + "\n")
+            print(f"Fixed vulnerability: {vuln['ruleId']} at line {start_line} in {file_path}")
 
 if __name__ == "__main__":
-    sarif_file_path = "snyk_results.json"
-    fix_vulnerabilities(sarif_file_path)
+    fix_vulnerabilities("snyk_results.json")
