@@ -436,10 +436,10 @@
                             "uriBaseId": "%SRCROOT%"
                           },
                           "region": {
-                            "startLine": 58,
-                            "endLine": 58,
-                            "startColumn": 28,
-                            "endColumn": 36
+                            "startLine": 40,
+                            "endLine": 40,
+                            "startColumn": 29,
+                            "endColumn": 37
                           }
                         }
                       }
@@ -453,10 +453,10 @@
                             "uriBaseId": "%SRCROOT%"
                           },
                           "region": {
-                            "startLine": 58,
-                            "endLine": 58,
-                            "startColumn": 28,
-                            "endColumn": 36
+                            "startLine": 40,
+                            "endLine": 40,
+                            "startColumn": 29,
+                            "endColumn": 37
                           }
                         }
                       }
@@ -470,496 +470,9 @@
                             "uriBaseId": "%SRCROOT%"
                           },
                           "region": {
-                            "startLine": 58,
-                            "endLine": 58,
-                            "startColumn": 28,
-                            "endColumn": 39
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 3,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 5,
-                            "endLine": 5,
-                            "startColumn": 25,
-                            "endColumn": 35
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 4,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 7,
-                            "endLine": 7,
-                            "startColumn": 15,
-                            "endColumn": 25
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 5,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 7,
-                            "endLine": 7,
-                            "startColumn": 10,
-                            "endColumn": 14
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ],
-          "properties": {
-            "priorityScore": 650,
-            "priorityScoreFactors": [
-              {
-                "label": true,
-                "type": "multipleOccurrence"
-              },
-              {
-                "label": true,
-                "type": "hotFileSource"
-              },
-              {
-                "label": true,
-                "type": "fixExamples"
-              }
-            ],
-            "isAutofixable": false
-          }
-        },
-        {
-          "ruleId": "python/PT",
-          "ruleIndex": 0,
-          "level": "warning",
-          "message": {
-            "text": "Unsanitized input from a command line argument flows into open, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to read arbitrary files.",
-            "markdown": "Unsanitized input from {0} {1} into {2}, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to read arbitrary files.",
-            "arguments": [
-              "[a command line argument](0)",
-              "[flows](1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12),(13),(14),(15),(16),(17),(18),(19),(20),(21)",
-              "[open](22)"
-            ]
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "fix_vulnerabilities_with_huggingface.py",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "startLine": 46,
-                  "endLine": 46,
-                  "startColumn": 26,
-                  "endColumn": 30
-                }
-              }
-            }
-          ],
-          "fingerprints": {
-            "0": "bfe9c48451ca9ecf697f159adaedfbb861bc37970820d5975d579435af4b8a19",
-            "1": "a6b41d6e.d65c0e39.184a673a.ef463c52.f3eda546.addfbd48.a2237efa.f46ed94e.b51fe9bb.d65c0e39.184a673a.b139e150.c274abab.31a96f2a.6ced4455.3acd807d"
-          },
-          "codeFlows": [
-            {
-              "threadFlows": [
-                {
-                  "locations": [
-                    {
-                      "location": {
-                        "id": 0,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 58,
-                            "endLine": 58,
-                            "startColumn": 28,
-                            "endColumn": 36
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 1,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 58,
-                            "endLine": 58,
-                            "startColumn": 28,
-                            "endColumn": 36
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 2,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 58,
-                            "endLine": 58,
-                            "startColumn": 28,
-                            "endColumn": 39
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 3,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 5,
-                            "endLine": 5,
-                            "startColumn": 25,
-                            "endColumn": 35
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 4,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 7,
-                            "endLine": 7,
-                            "startColumn": 15,
-                            "endColumn": 25
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 5,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 7,
-                            "endLine": 7,
-                            "startColumn": 10,
-                            "endColumn": 14
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 6,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 7,
-                            "endLine": 7,
-                            "startColumn": 35,
-                            "endColumn": 39
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 7,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 8,
-                            "endLine": 8,
-                            "startColumn": 34,
-                            "endColumn": 38
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 8,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 8,
-                            "endLine": 8,
-                            "startColumn": 24,
-                            "endColumn": 33
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 9,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 8,
-                            "endLine": 8,
-                            "startColumn": 9,
-                            "endColumn": 39
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 10,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 11,
-                            "endLine": 11,
-                            "startColumn": 23,
-                            "endColumn": 35
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 11,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 11,
-                            "endLine": 11,
-                            "startColumn": 23,
-                            "endColumn": 39
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 12,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 37,
-                            "endLine": 37,
-                            "startColumn": 9,
-                            "endColumn": 22
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 13,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 39,
-                            "endLine": 39,
-                            "startColumn": 21,
-                            "endColumn": 34
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 14,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 39,
-                            "endLine": 39,
-                            "startColumn": 21,
-                            "endColumn": 38
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 15,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 39,
-                            "endLine": 39,
-                            "startColumn": 13,
-                            "endColumn": 17
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 16,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
                             "startLine": 40,
                             "endLine": 40,
-                            "startColumn": 26,
-                            "endColumn": 30
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 17,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 40,
-                            "endLine": 40,
-                            "startColumn": 45,
-                            "endColumn": 49
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 18,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 41,
-                            "endLine": 41,
                             "startColumn": 29,
-                            "endColumn": 33
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 19,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 41,
-                            "endLine": 41,
-                            "startColumn": 29,
-                            "endColumn": 41
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 20,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 41,
-                            "endLine": 41,
-                            "startColumn": 17,
-                            "endColumn": 41
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "location": {
-                        "id": 21,
-                        "physicalLocation": {
-                          "artifactLocation": {
-                            "uri": "fix_vulnerabilities_with_huggingface.py",
-                            "uriBaseId": "%SRCROOT%"
-                          },
-                          "region": {
-                            "startLine": 46,
-                            "endLine": 46,
-                            "startColumn": 31,
                             "endColumn": 40
                           }
                         }
@@ -967,17 +480,51 @@
                     },
                     {
                       "location": {
-                        "id": 22,
+                        "id": 3,
                         "physicalLocation": {
                           "artifactLocation": {
                             "uri": "fix_vulnerabilities_with_huggingface.py",
                             "uriBaseId": "%SRCROOT%"
                           },
                           "region": {
-                            "startLine": 46,
-                            "endLine": 46,
-                            "startColumn": 26,
-                            "endColumn": 30
+                            "startLine": 5,
+                            "endLine": 5,
+                            "startColumn": 25,
+                            "endColumn": 34
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "id": 4,
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "fix_vulnerabilities_with_huggingface.py",
+                            "uriBaseId": "%SRCROOT%"
+                          },
+                          "region": {
+                            "startLine": 7,
+                            "endLine": 7,
+                            "startColumn": 15,
+                            "endColumn": 24
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "location": {
+                        "id": 5,
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "fix_vulnerabilities_with_huggingface.py",
+                            "uriBaseId": "%SRCROOT%"
+                          },
+                          "region": {
+                            "startLine": 7,
+                            "endLine": 7,
+                            "startColumn": 10,
+                            "endColumn": 14
                           }
                         }
                       }
@@ -988,15 +535,11 @@
             }
           ],
           "properties": {
-            "priorityScore": 650,
+            "priorityScore": 600,
             "priorityScoreFactors": [
               {
                 "label": true,
-                "type": "multipleOccurrence"
-              },
-              {
-                "label": true,
-                "type": "hotFileSource"
+                "type": "hotFileCodeFlow"
               },
               {
                 "label": true,
