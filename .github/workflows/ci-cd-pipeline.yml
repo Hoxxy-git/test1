@@ -20,10 +20,12 @@ jobs:
         with:
           python-version: 3.11
 
-      # 3. Snyk CLI 설치
+      # 3. Snyk CLI 설치 및 경로 확인
       - name: Install Snyk CLI
         run: |
           npm install -g snyk
+          echo "Snyk version:"
+          snyk --version
 
       # 4. 필요한 Python 패키지 설치
       - name: Install dependencies
