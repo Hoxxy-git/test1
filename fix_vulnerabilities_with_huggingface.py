@@ -14,28 +14,20 @@ def call_huggingface_model(input_code):
         headers=headers,
         json={"inputs": input_code}
     )
-    return response.json()
+    if response.status_code == 200:
+        return response.json().get("generated_text", "")
+    else:
+        print(f"Failed to get response from Hugging Face API: {response.status_code}")
+        return None
 
-def fix_vulnerabilities(input_file):
-    with open(input_file, "r") as file:
+def fix_vulnerabilities(sarif_file_path):
+    with open(sarif_file_path, "r") as file:
         snyk_results = json.load(file)
 
-    # SARIF 파일에서 취약점 정보 추출
     vulnerabilities = []
-    runs = snyk_results.get("runs", [])
-    for run in runs:
-        results = run.get("results", [])
-        for result in results:
-            locations = result.get("locations", [])
-            for location in locations:
-                physical_location = location.get("physicalLocation", {})
-                region = physical_location.get("region", {})
-                snippet = region.get("snippet", {}).get("text", "")
-                if snippet:
-                    vulnerabilities.append({
-                        "id": result.get("ruleId"),
-                        "line": snippet
-                    })
+    for run in snyk_results.get("runs", []):
+        for result in run.get("results", []):
+            vulnerabilities.append(result)
 
     if not vulnerabilities:
         print("No vulnerabilities found.")
@@ -43,10 +35,15 @@ def fix_vulnerabilities(input_file):
 
     with open("fixed_code.py", "w") as output_file:
         for vuln in vulnerabilities:
-            original_code = vuln['line']
+            original_code = vuln['message']['text']
             fixed_code = call_huggingface_model(original_code)
-            output_file.write(fixed_code + "\n")
-            print(f"Fixed vulnerability: {vuln['id']}")
+            if fixed_code:
+                output_file.write(fixed_code + "\n")
+                print(f"Fixed vulnerability: {vuln['ruleId']}")
+            else:
+                output_file.write(original_code + "\n")
+                print(f"Failed to fix vulnerability: {vuln['ruleId']}, using original code.")
 
 if __name__ == "__main__":
-    fix_vulnerabilities("snyk_results.json")
+    sarif_file_path = "snyk_results.json"
+    fix_vulnerabilities(sarif_file_path)
