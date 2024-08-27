@@ -98,7 +98,16 @@ jobs:
         run: |
           pip install awsebcli
 
-      # 8. Elastic Beanstalk 환경 상태 확인 및 생성
+      # 8. Elastic Beanstalk 초기화
+      - name: Initialize Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          eb init -p python-3.11 joleeus-env --region ap-northeast-2
+
+      # 9. Elastic Beanstalk 환경 상태 확인 및 생성
       - name: Check if Elastic Beanstalk Environment Exists
         id: check_env
         env:
@@ -129,7 +138,7 @@ jobs:
         run: |
           eb use joleeus-env
 
-      # 9. Elastic Beanstalk에 코드 배포
+      # 10. Elastic Beanstalk에 코드 배포
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
