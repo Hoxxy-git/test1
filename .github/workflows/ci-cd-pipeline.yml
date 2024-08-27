@@ -45,36 +45,42 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      # 7. 취약점이 있는지 확인하고, 있다면 수정 후 GitHub에 커밋
-      - name: Check for vulnerabilities and fix if found
+      # 7. 자동으로 수정 가능한 취약점 수정
+      - name: Fix vulnerabilities with Snyk
+        run: |
+          snyk code fix --file=app.py --json > snyk_fix_results.json || true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      # 8. 수정된 파일이 있는지 확인하고 커밋 및 푸시
+      - name: Commit and Push fixed code
+        run: |
+          if git diff --quiet app.py; then
+            echo "No automatic fixes were applied."
+          else
+            git config --local user.email "kkamagui.0@gmail.com"
+            git config --local user.name "kkamagui-0"
+            git add app.py
+            git commit -m "Auto-fixed vulnerabilities in app.py"
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
+            echo "수정되었습니다"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 9. 자동으로 수정되지 않은 취약점 확인 및 알림 (남아있는 취약점이 있으면 배포 중단)
+      - name: Check for remaining vulnerabilities and notify
         run: |
           if grep -q "vulnerabilities" snyk_results.json; then
-            snyk code fix --file=app.py --json > snyk_fix_results.json
-            
-            if git diff --quiet app.py; then
-              echo "No changes made to app.py"
-            else
-              git config --local user.email "kkamagui.0@gmail.com"
-              git config --local user.name "kkamagui-0"
-              git add app.py
-              git commit -m "Auto-fixed vulnerabilities in app.py"
-              git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
-              echo "수정되었습니다"
-            fi
+            echo "Remaining vulnerabilities detected."
+            # SNS 알림을 보내는 코드 추가 (Python script or AWS CLI)
+            python notify_unresolved_vulnerabilities.py
+            exit 1  # 배포 중단을 위해 스크립트 종료
           else
-            echo "No vulnerabilities found."
+            echo "No remaining vulnerabilities."
           fi
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # 8. SNS 및 Lambda를 통해 알림 발송
-      - name: Trigger Lambda for SNS Notification
-        if: steps.snyk_scan.outputs.vulnerabilities-found == 'true'
-        run: |
-          aws lambda invoke --function-name Vulnerability_Discovered --payload fileb://payload.json response.json
-          cat response.json
-        env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
@@ -82,18 +88,15 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: test-and-scan
-
+    if: success() && needs.test-and-scan.outputs.vulnerabilities-found == 'false'  # 취약점이 없을 때만 배포
     steps:
-      # 1. GitHub에서 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. AWS Elastic Beanstalk CLI 설치
       - name: Set up AWS Elastic Beanstalk CLI
         run: |
           pip install awsebcli
 
-      # 3. Elastic Beanstalk 환경 초기화
       - name: Initialize Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -102,38 +105,6 @@ jobs:
         run: |
           eb init -p python-3.11 joleeus-env --region ap-northeast-2
 
-      # 4. Elastic Beanstalk 환경 상태 확인 및 생성
-      - name: Check if Elastic Beanstalk Environment Exists
-        id: check_env
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ap-northeast-2"
-        run: |
-          if eb status joleeus-env; then
-            echo "env_exists=true" >> $GITHUB_ENV
-          else
-            echo "env_exists=false" >> $GITHUB_ENV
-          fi
-
-      - name: Create Elastic Beanstalk Environment if Not Found
-        if: env.env_exists == 'false'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ap-northeast-2"
-        run: |
-          eb create joleeus-env --region ap-northeast-2 --platform "python-3.11" --single
-
-      - name: Use Elastic Beanstalk Environment
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ap-northeast-2"
-        run: |
-          eb use joleeus-env
-
-      # 5. Elastic Beanstalk에 코드 배포
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
