@@ -35,13 +35,14 @@ jobs:
 
       # 5. Snyk를 이용하여 코드 스캔
       - name: Run Snyk Code Scan
-        run: |
-          snyk code test --json > snyk_results.json --debug
+        run: snyk code test --json > snyk_results.json --debug
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
 
       # 6. Snyk 스캔 결과에 따라 Hugging Face AI 모델로 코드 수정
       - name: Analyze and Fix Vulnerabilities with Hugging Face
+        if: always()
         run: |
           if grep -q "vulnerabilities" snyk_results.json; then
             python fix_vulnerabilities_with_huggingface.py snyk_results.json
@@ -49,23 +50,22 @@ jobs:
 
       # 7. 수정된 코드가 있다면 GitHub에 푸시
       - name: Commit and Push fixed code
+        if: always() && grep -q "Auto-fixed vulnerabilities" snyk_results.json
         run: |
-          if [ -f "fixed_code.py" ]; then
-            git config --local user.email "kkamagui.0@gmail.com"
-            git config --local user.name "KKamgui-0"
-            git add .
-            git commit -m "Auto-fixed vulnerabilities"
-            git push https://<YOUR_GITHUB_TOKEN>@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
+          git config --local user.email "kkamagui.0@gmail.com"
+          git config --local user.name "KKamgui-0"
+          git add .
+          git commit -m "Auto-fixed vulnerabilities"
+          git push https://<YOUR_GITHUB_TOKEN>@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 8. 람다 함수 호출하여 SNS 알림 발송
       - name: Trigger Lambda for SNS Notification
+        if: always() && grep -q "Auto-fixed vulnerabilities" snyk_results.json
         run: |
-          if [ -f "fixed_code.py" ]; then
-            aws lambda invoke --function-name Vulnerability_Discovered --payload file://fixed_code.py response.json
-            cat response.json
-          fi
+          aws lambda invoke --function-name Vulnerability_Discovered --payload file://fixed_code.py response.json
+          cat response.json
 
   deploy:
     runs-on: ubuntu-latest
