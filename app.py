@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, render_template_string, escape
 import sqlite3
 import os
 
@@ -27,10 +27,9 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = escape(request.form['username'])
+        password = escape(request.form['password'])
 
-        # SQL Injection 방지된 코드
         conn = sqlite3.connect('example.db')
         c = conn.cursor()
         query = "SELECT * FROM users WHERE username = ? AND password = ?"
@@ -39,7 +38,7 @@ def login():
         conn.close()
 
         if user:
-            return f'Welcome, {username}!'
+            return f'Welcome, {escape(username)}!'
         else:
             return 'Invalid credentials!'
 
@@ -56,7 +55,8 @@ def login():
 def upload_file():
     if request.method == 'POST':
         file = request.files['file']
-        filename = os.path.basename(file.filename)
+        # 사용자 파일 이름에서 경로 관련 요소 제거
+        filename = os.path.basename(escape(file.filename))
         file.save(os.path.join('uploads', filename))
         return 'File uploaded successfully'
     
@@ -70,9 +70,9 @@ def upload_file():
 # XSS 방지된 페이지
 @app.route('/greet')
 def greet():
-    name = request.args.get('name', '')
+    name = escape(request.args.get('name', ''))
     return f'<h1>Hello, {name}!</h1>'
 
 if __name__ == '__main__':
-    init_db()  # 데이터베이스 초기화
-    app.run(debug=True)  # 디버그 모드에서 실행 (이 부분이 Snyk에 의해 자동으로 수정될 수 있습니다) 확인
+    init_db()
+    app.run(debug=False)
