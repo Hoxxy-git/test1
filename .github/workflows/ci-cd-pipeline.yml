@@ -66,6 +66,14 @@ jobs:
             echo "Fixed code not found. Check the Hugging Face script."
             # 추가된 디버깅 출력
             ls -la
+          fi
+        env:
+          pythonLocation: ${{ env.pythonLocation }}
+          PKG_CONFIG_PATH: ${{ env.PKG_CONFIG_PATH }}
+          Python_ROOT_DIR: ${{ env.Python_ROOT_DIR }}
+          Python2_ROOT_DIR: ${{ env.Python2_ROOT_DIR }}
+          Python3_ROOT_DIR: ${{ env.Python3_ROOT_DIR }}
+          LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}
         continue-on-error: true
 
       # 9. 수정된 코드가 있을 경우 커밋하고 푸시
