@@ -92,8 +92,13 @@ jobs:
       - name: Trigger Lambda for SNS Notification
         if: env.fixed_code_exists == 'true'
         run: |
-          aws lambda invoke --function-name Vulnerability_Discovered --payload file://fixed_code.py response.json
+          aws lambda invoke --function-name Vulnerability_Discovered --payload fileb://fixed_code.py response.json
           cat response.json
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+
 
   deploy:
     runs-on: ubuntu-latest
