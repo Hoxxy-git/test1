@@ -94,6 +94,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -102,4 +107,6 @@ jobs:
         run: |
           pip install awsebcli
           eb init -p python-3.11 my-eb-app --region ap-northeast-2
+          eb use my-env-name # 여기서 my-env-name은 여러분의 실제 Elastic Beanstalk 환경 이름으로 바꿔주세요
           eb deploy --staged
+
