@@ -54,7 +54,7 @@ jobs:
             git config --local user.email "kkamagui.0@gmail.com"
             git config --local user.name "kkamagui-0"
             git diff app.py  # 파일 변경 확인
-            git add app.py
+            git add .
             git commit -m "Auto-fixed vulnerabilities in app.py"
             git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
           else
