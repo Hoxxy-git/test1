@@ -24,12 +24,24 @@ def login():
         conn = sqlite3.connect('example.db')
         c = conn.cursor()
         query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
-        c.execute(query)
+c.execute(query)
+    db.commit()
+    #tmap输出数据文件夹为‘E:\CLX\multi_Focused\img\tmap\try_1\fig&data'
+    tmap, results = tmap_feat.tmap_cal(nwpng_data="E:\\CLX\\multi_Focused\\img\\nwpng\\06.png",
+                                        tif_data="E:\\CLX\\multi_Focused\\img\\tif\\proCCimage.tif
         user = c.fetchone()
         conn.close()
 
         if user:
-            return f'Welcome, {username}!'
+return f'Welcome, {username}!'
+
+if __name__=='__main__':
+	app.run(debug=True, port=8081)
+
+
+
+
+
         else:
             return 'Invalid credentials!'
 
@@ -37,7 +49,19 @@ def login():
         <form method="post">
             Username: <input type="text" name="username"><br>
             Password: <input type="password" name="password"><br>
-            <input type="submit" value="Login">
+<input type="submit" value="Login">
+		</form></body></html>
+
+
+If the input look like '{"username":'. It means not valid json. In that case you need to return a 400 error code
+
+
+If the input look like '{"username":'. It means not valid json. In that case you need to return a 400 error code
+
+
+Try to validate each input, if required and if possible.
+
+Once validated, the email will be look like '{"username":'.
         </form>
     '''
 
@@ -57,4 +81,6 @@ def upload_file():
 #main 실행
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+app.run(debug=True)
+
+
