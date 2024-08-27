@@ -84,7 +84,7 @@ jobs:
           git config --local user.name "KKamgui-0"
           git add fixed_code.py
           git commit -m "Auto-fixed vulnerabilities"
-          git push https://<YOUR_GITHUB_TOKEN>@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
+           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
