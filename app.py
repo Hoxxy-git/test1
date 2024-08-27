@@ -28,8 +28,8 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = escape(request.form['username'])
+        password = escape(request.form['password'])
 
         # SQL Injection 방지된 코드
         conn = sqlite3.connect('example.db')
@@ -76,4 +76,4 @@ def greet():
 
 if __name__ == '__main__':
     init_db()  # 데이터베이스 초기화
-    app.run(debug=True)  # 애플리케이션 실행
+    app.run(debug=False)  # 애플리케이션 실행
