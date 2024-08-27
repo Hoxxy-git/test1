@@ -99,14 +99,33 @@ jobs:
         with:
           python-version: 3.11
 
+      - name: Install AWS Elastic Beanstalk CLI
+        run: |
+          pip install awsebcli
+
+      - name: Initialize Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          eb init -p python-3.11 my-eb-app --region ap-northeast-2
+          
+      - name: Create or Use Existing Elastic Beanstalk Environment
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          eb status <your-real-env-name> || eb create <your-real-env-name> --region ap-northeast-2 --platform "python-3.11" --single
+          eb use <your-real-env-name>
+
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
-          pip install awsebcli
-          eb init -p python-3.11 my-eb-app --region ap-northeast-2
-          eb use my-env-name # 여기서 my-env-name은 여러분의 실제 Elastic Beanstalk 환경 이름으로 바꿔주세요
           eb deploy --staged
+
 
