@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string, redirect, url_for
+from flask import Flask, request, redirect, url_for
 import sqlite3
 import os
 
@@ -13,18 +13,28 @@ def init_db():
     conn.commit()
     conn.close()
 
-# SQL Injection 취약점이 있는 로그인 페이지
+@app.route('/')
+def home():
+    return '''
+        <h1>Welcome to the Home Page!</h1>
+        <p>Select a page to navigate:</p>
+        <button onclick="window.location.href='/login'">Login Page</button><br><br>
+        <button onclick="window.location.href='/upload'">Upload Page</button><br><br>
+        <button onclick="window.location.href='/greet'">Greet Page</button>
+    '''
+
+# SQL Injection 방지된 로그인 페이지
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        # SQL Injection 취약점이 있는 코드
+        # SQL Injection 방지된 코드
         conn = sqlite3.connect('example.db')
         c = conn.cursor()
-        query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
-        c.execute(query)
+        query = "SELECT * FROM users WHERE username = ? AND password = ?"
+        c.execute(query, (username, password))
         user = c.fetchone()
         conn.close()
 
@@ -41,19 +51,13 @@ def login():
         </form>
     '''
 
-# XSS 취약점이 있는 페이지
-@app.route('/greet')
-def greet():
-    name = request.args.get('name', '')
-    return f'<h1>Hello, {name}!</h1>'  # 이 코드에는 XSS 취약점이 존재합니다.
-
-# 파일 업로드 취약점이 있는 페이지
+# 파일 업로드 페이지
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
         file = request.files['file']
-        filename = file.filename
-        file.save(os.path.join('uploads', filename))  # 이 코드에는 파일 업로드 취약점이 존재합니다.
+        filename = os.path.basename(file.filename)
+        file.save(os.path.join('uploads', filename))
         return 'File uploaded successfully'
     
     return '''
@@ -63,7 +67,12 @@ def upload_file():
         </form>
     '''
 
-# 디버그 모드에서 실행 (취약점 포함)
+# XSS 방지된 페이지
+@app.route('/greet')
+def greet():
+    name = request.args.get('name', '')
+    return f'<h1>Hello, {name}!</h1>'
+
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)  # 디버그 모드에서 실행하는 것은 보안 취약점이 될 수 있습니다.
+    init_db()  # 데이터베이스 초기화
+    app.run(debug=True)  # 애플리케이션 실행
