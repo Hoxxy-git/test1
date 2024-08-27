@@ -50,18 +50,12 @@ jobs:
         run: |
           if grep -q "vulnerabilities" snyk_results.json; then
             snyk code fix --file=app.py --json > snyk_fix_results.json
-
             git config --local user.email "kkamagui.0@gmail.com"
             git config --local user.name "kkamagui-0"
-
-            if git diff --exit-code app.py; then
-              echo "수정이 없습니다"
-            else
-              git add app.py
-              git commit -m "Auto-fixed vulnerabilities in app.py"
-              git push https://github.com/KKamagui-0/Project_Joleeus.git HEAD:master
-              echo "수정되었습니다"
-            fi
+            git add app.py
+            git commit -m "Auto-fixed vulnerabilities in app.py"
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
+            echo "수정되었습니다"
           else
             echo "No vulnerabilities found."
           fi
@@ -69,18 +63,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 8. Elastic Beanstalk에 배포
-      - name: Deploy to Elastic Beanstalk
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ap-northeast-2"
-        run: |
-          pip install awsebcli
-          eb init -p python-3.11 joleeus-env --region ap-northeast-2
-          eb deploy
-          
-      # 9. 취약점 수정 여부에 따라 SNS 알림 발송
+      # 8. SNS 및 Lambda를 통해 알림 발송
       - name: Trigger Lambda for SNS Notification
         if: steps.snyk_scan.outputs.vulnerabilities-found == 'true'
         run: |
@@ -90,3 +73,66 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test-and-scan
+
+    steps:
+      # 1. GitHub에서 코드 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. AWS Elastic Beanstalk CLI 설치
+      - name: Set up AWS Elastic Beanstalk CLI
+        run: |
+          pip install awsebcli
+
+      # 3. Elastic Beanstalk 환경 초기화
+      - name: Initialize Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          eb init -p python-3.11 joleeus-env --region ap-northeast-2
+
+      # 4. Elastic Beanstalk 환경 상태 확인 및 생성
+      - name: Check if Elastic Beanstalk Environment Exists
+        id: check_env
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          if eb status joleeus-env; then
+            echo "env_exists=true" >> $GITHUB_ENV
+          else
+            echo "env_exists=false" >> $GITHUB_ENV
+          fi
+
+      - name: Create Elastic Beanstalk Environment if Not Found
+        if: env.env_exists == 'false'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          eb create joleeus-env --region ap-northeast-2 --platform "python-3.11" --single
+
+      - name: Use Elastic Beanstalk Environment
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          eb use joleeus-env
+
+      # 5. Elastic Beanstalk에 코드 배포
+      - name: Deploy to Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          eb deploy
