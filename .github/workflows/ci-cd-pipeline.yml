@@ -56,6 +56,8 @@ jobs:
           git add .
           git commit -m "Auto-fixed vulnerabilities"
           git push origin HEAD:master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 8. 람다 함수 호출하여 SNS 알림 발송
       - name: Trigger Lambda for SNS Notification
