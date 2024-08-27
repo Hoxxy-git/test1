@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-# 취약점 1: SQL 인젝션
+# 취약점 1: SQL 인젝션 취약점
 @app.route('/user/<username>')
 def show_user_profile(username):
     # 사용자가 입력한 값을 그대로 SQL 쿼리에 사용
