@@ -48,52 +48,44 @@ jobs:
       - name: Analyze and Fix Vulnerabilities with Hugging Face
         run: |
           if grep -q "vulnerabilities" snyk_results.json; then
-            python fix_vulnerabilities_with_huggingface.py snyk_results.json
+            python fix_vulnerabilities_with_huggingface.py snyk_results.json app.py
           else
             echo "No vulnerabilities found."
           fi
         env:
           HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
 
-      # 8. 수정된 코드가 존재하는지 확인
-      - name: Check if fixed code exists
+      # 8. 수정된 app.py가 존재하는지 확인
+      - name: Check if app.py was modified
         id: check_fixed_code
         run: |
-          if [ -f "fixed_code.py" ]; then
-            echo "fixed_code_exists=true" >> $GITHUB_ENV
+          if git diff --name-only | grep -q "app.py"; then
+            echo "app_py_modified=true" >> $GITHUB_ENV
           else
-            echo "fixed_code_exists=false" >> $GITHUB_ENV
-            echo "Fixed code not found. Check the Hugging Face script."
-            # 추가된 디버깅 출력
-            ls -la
+            echo "app_py_modified=false" >> $GITHUB_ENV
+            echo "No modifications were made to app.py."
           fi
-        env:
-          pythonLocation: ${{ env.pythonLocation }}
-          PKG_CONFIG_PATH: ${{ env.PKG_CONFIG_PATH }}
-          Python_ROOT_DIR: ${{ env.Python_ROOT_DIR }}
-          Python2_ROOT_DIR: ${{ env.Python2_ROOT_DIR }}
-          Python3_ROOT_DIR: ${{ env.Python3_ROOT_DIR }}
-          LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}
         continue-on-error: true
 
-      # 9. 수정된 코드가 있을 경우 커밋하고 푸시
-      - name: Commit and Push fixed code
-        if: env.fixed_code_exists == 'true'
+      # 9. 수정된 app.py가 있을 경우 커밋하고 푸시
+      - name: Commit and Push modified app.py
+        if: env.app_py_modified == 'true'
         run: |
           git config --local user.email "kkamagui.0@gmail.com"
           git config --local user.name "KKamgui-0"
-          git add fixed_code.py
-          git commit -m "Auto-fixed vulnerabilities"
+          git add app.py
+          git commit -m "Auto-fixed vulnerabilities in app.py"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 10. 수정된 코드가 있을 경우 람다 함수 호출하여 SNS 알림 발송
+      # 10. 수정된 app.py가 있을 경우 람다 함수 호출하여 SNS 알림 발송
       # Python 코드를 실행하는 단계
       - name: Prepare Payload for Lambda
         run: python prepare_payload.py
 
       - name: Trigger Lambda for SNS Notification
+        if: env.app_py_modified == 'true'
         run: |
           aws lambda invoke --function-name Vulnerability_Discovered --payload fileb://payload.json response.json
           cat response.json
@@ -153,7 +145,7 @@ jobs:
         run: |
           eb use joleeus-env
 
-      # 10. Elastic Beanstalk에 코드 배 포
+      # 10. Elastic Beanstalk에 코드 배포
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
