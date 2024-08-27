@@ -7,14 +7,6 @@ Unsanitized input from an HTTP parameter flows into the return value of greet, w
                             "External References": [
                                 {"Name": "github_issue", "Url": "https://github.com/wireghoul/hackafe/issues/16"},
                                 {"Name": "discovery", "Url": "https://www.magik
-Running the application in debug mode (debug flag is set to True in run) is a security risk if the application is accessible by untrusted parties.
-
-@app.route("/")
-...
-
-'''
-
-APP = app.run(host=HOST, port=PORT, debug=DEBUG) # call the app.run () method
 Unsanitized input from a web form flows into execute, where it is used in an SQL query. This may result in an SQL Injection vulnerability. Sanitize all untrusted inputs immediately and use parameterized queries or stored procedures.",
         
         "flag": "",
@@ -32,3 +24,11 @@ This endpoint takes any file that is sent in the request body and saves it to a 
 
 
 This is a simple read-only save endpoint. In other words, you can send anything in the request body AND you can choose a random file name, so it
+Running the application in debug mode (debug flag is set to True in run) is a security risk if the application is accessible by untrusted parties.
+
+@app.route("/")
+...
+
+'''
+
+APP = app.run(host=HOST, port=PORT, debug=DEBUG) # call the app.run () method
