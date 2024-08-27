@@ -14,10 +14,17 @@ def call_huggingface_model(input_code):
         headers=headers,
         json={"inputs": input_code}
     )
-    if response.status_code == 200:
-        return response.json().get("generated_text", "")
-    else:
-        print(f"Failed to get response from Hugging Face API: {response.status_code}")
+    
+    # 응답이 리스트 형태로 반환될 수 있으므로, 이를 처리합니다.
+    try:
+        response_json = response.json()
+        if isinstance(response_json, list) and len(response_json) > 0:
+            return response_json[0].get("generated_text", "")
+        else:
+            print(f"Unexpected response format: {response_json}")
+            return None
+    except ValueError:
+        print(f"Failed to decode JSON: {response.text}")
         return None
 
 def fix_vulnerabilities(sarif_file_path):
