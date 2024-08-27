@@ -1,40 +1,36 @@
-import sys
 import json
+import os
 import requests
 
-def fix_vulnerabilities(file_path):
-    # Snyk 스캔 결과 읽기
-    with open(file_path, 'r') as file:
+# Hugging Face 모델에 접근하기 위한 설정
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/bigcode/starcoder"
+HUGGINGFACE_TOKEN = os.getenv('HUGGINGFACE_TOKEN')
+
+headers = {"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}
+
+def call_huggingface_model(input_code):
+    response = requests.post(
+        HUGGINGFACE_API_URL,
+        headers=headers,
+        json={"inputs": input_code}
+    )
+    return response.json()
+
+def fix_vulnerabilities(input_file):
+    with open(input_file, "r") as file:
         snyk_results = json.load(file)
-    
-    vulnerabilities = snyk_results.get('vulnerabilities', [])
-    
+
+    vulnerabilities = snyk_results.get("vulnerabilities", [])
     if not vulnerabilities:
         print("No vulnerabilities found.")
         return
-    
-    # Hugging Face 모델에 요청 보내기
-    url = "https://api-inference.huggingface.co/models/bigcode/starcoder"
-    headers = {"Authorization": f"Bearer {os.getenv('HUGGINGFACE_TOKEN')}"}
-    
-    for vuln in vulnerabilities:
-        original_code = vuln['identifiers']['cwe'][0]['name']
-        
-        data = {"inputs": original_code}
-        
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        
-        fixed_code = response.json().get('generated_text', '')
-        
-        # 수정된 코드를 파일에 쓰기
-        with open('fixed_code.py', 'w') as fixed_file:
-            fixed_file.write(fixed_code)
-        
-        print("Vulnerabilities have been fixed and saved to fixed_code.py")
+
+    with open("fixed_code.py", "w") as output_file:
+        for vuln in vulnerabilities:
+            original_code = vuln['line']
+            fixed_code = call_huggingface_model(original_code)
+            output_file.write(fixed_code + "\n")
+            print(f"Fixed vulnerability: {vuln['id']}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python fix_vulnerabilities_with_huggingface.py <snyk_results.json>")
-    else:
-        fix_vulnerabilities(sys.argv[1])
+    fix_vulnerabilities("snyk_results.json")

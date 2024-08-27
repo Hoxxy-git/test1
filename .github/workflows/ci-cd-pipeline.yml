@@ -14,55 +14,59 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Python 환경 설정
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      # 2. Node.js 설치 (Snyk CLI 설치를 위해)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          python-version: 3.11
+          node-version: '16'
 
       # 3. Snyk CLI 설치
       - name: Install Snyk CLI
         run: |
           npm install -g snyk
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          snyk --version
 
-      # 4. Python 패키지 설치
+      # 4. Python 환경 설정
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      # 5. 필요한 Python 패키지 설치
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 5. Snyk를 이용하여 코드 스캔
+      # 6. Snyk를 이용하여 코드 스캔
       - name: Run Snyk Code Scan
-        run: snyk code test --json > snyk_results.json
+        run: snyk code test --json > snyk_results.json --debug
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      # 6. Snyk 스캔 결과에 따라 Hugging Face AI 모델로 코드 수정
+      # 7. Snyk 스캔 결과에 따라 Hugging Face AI 모델로 코드 수정
       - name: Analyze and Fix Vulnerabilities with Hugging Face
+        if: always() && grep -q "vulnerabilities" snyk_results.json
         run: |
-          if grep -q "vulnerabilities" snyk_results.json; then
-            python fix_vulnerabilities_with_huggingface.py snyk_results.json
-          fi
+          python fix_vulnerabilities_with_huggingface.py snyk_results.json
 
-      # 7. 수정된 코드가 있다면 GitHub에 푸시
+      # 8. 수정된 코드가 있다면 GitHub에 푸시
       - name: Commit and Push fixed code
-        if: always() && env.vulnerabilities_fixed == 'true'
+        if: always() && [ -f "fixed_code.py" ]
         run: |
           git config --local user.email "kkamagui.0@gmail.com"
           git config --local user.name "KKamgui-0"
           git add .
           git commit -m "Auto-fixed vulnerabilities"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
+          git push https://<YOUR_GITHUB_TOKEN>@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
         env:
-          vulnerabilities_fixed: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 8. 람다 함수 호출하여 SNS 알림 발송
+      # 9. 람다 함수 호출하여 SNS 알림 발송
       - name: Trigger Lambda for SNS Notification
-        if: always() && env.vulnerabilities_fixed == 'true'
+        if: always() && [ -f "fixed_code.py" ]
         run: |
-          aws lambda invoke --function-name Vulnerability_Discovered --payload file://snyk_results.json response.json
+          aws lambda invoke --function-name Vulnerability_Discovered --payload file://fixed_code.py response.json
           cat response.json
 
   deploy:
@@ -80,5 +84,4 @@ jobs:
         run: |
           pip install awsebcli
           eb init -p python-3.11 my-eb-app --region ap-northeast-2
-          eb use my-eb-env
           eb deploy --staged
