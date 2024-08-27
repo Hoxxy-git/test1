@@ -94,23 +94,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
-
-      - name: Install AWS Elastic Beanstalk CLI
+      - name: Set up AWS Elastic Beanstalk CLI
         run: |
           pip install awsebcli
 
-      - name: Initialize Elastic Beanstalk
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ap-northeast-2"
-        run: |
-          eb init -p python-3.11 my-eb-app --region ap-northeast-2
-
+      # 8. Elastic Beanstalk 환경 상태 확인 및 생성
       - name: Check if Elastic Beanstalk Environment Exists
         id: check_env
         env:
@@ -118,16 +106,20 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
-          eb status <your-real-env-name> || echo "not_found"
+          if eb status joleeus-env; then
+            echo "env_exists=true" >> $GITHUB_ENV
+          else
+            echo "env_exists=false" >> $GITHUB_ENV
+          fi
 
       - name: Create Elastic Beanstalk Environment if Not Found
-        if: steps.check_env.outputs.status == 'not_found'
+        if: env.env_exists == 'false'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
-          eb create <your-real-env-name> --region ap-northeast-2 --platform "python-3.11" --single
+          eb create joleeus-env --region ap-northeast-2 --platform "python-3.11" --single
 
       - name: Use Elastic Beanstalk Environment
         env:
@@ -135,15 +127,16 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
-          eb use <your-real-env-name>
+          eb use joleeus-env
 
+      # 9. Elastic Beanstalk에 코드 배포
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
-          eb deploy --staged
+          eb deploy
 
 
 
