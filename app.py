@@ -75,4 +75,4 @@ def greet():
 
 if __name__ == '__main__':
     init_db()  # 데이터베이스 초기화
-    app.run(debug=True)  # 애플리케이션 실행
+    app.run(debug=True)  # 디버그 모드에서 실행 (이 부분이 Snyk에 의해 자동으로 수정될 수 있습니다) 확인
