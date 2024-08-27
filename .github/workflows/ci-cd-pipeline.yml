@@ -4,40 +4,61 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
 
 jobs:
   test-and-scan:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. GitHub에서 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Python 환경 설정
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
+      # 3. 필요한 Python 패키지 설치
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-c-cpp@v2
-        with:
-          args: >
-            -Dsonar.projectKey=my_flask_project
-            -Dsonar.sources=.
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      # 4. Snyk를 이용하여 코드 스캔
+      - name: Run Snyk Code Scan
+        run: |
+          snyk code test --json > snyk_results.json
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
+      # 5. Snyk 스캔 결과에 따라 Hugging Face AI 모델로 코드 수정
+      - name: Analyze and Fix Vulnerabilities with Hugging Face
+        run: |
+          if grep -q "vulnerabilities" snyk_results.json; then
+            python fix_vulnerabilities_with_huggingface.py snyk_results.json
+          fi
+
+      # 6. 수정된 코드가 있다면 GitHub에 푸시
+      - name: Commit and Push fixed code
+        if: always() && [ -f "fixed_code.py" ]
+        run: |
+          git config --local user.email "kkamagui.0@gmail.com"
+          git config --local user.name "KKamgui-0"
+          git add fixed_code.py
+          git commit -m "Auto-fixed vulnerabilities"
+          git push origin HEAD:master
+
+      # 7. 람다 함수 호출하여 SNS 알림 발송
+      - name: Trigger Lambda for SNS Notification
+        if: success() && [ -f "fixed_code.py" ]
+        run: |
+          aws lambda invoke --function-name Vulnerability_Discovered --payload file://fixed_code.py response.json
+          cat response.json
   deploy:
-    if: success() && github.event_name == 'push'
-    needs: test-and-scan
     runs-on: ubuntu-latest
+    needs: snyk-scan
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -46,10 +67,8 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ap-northeast-2" # 서울 리전
+          AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
           pip install awsebcli
-          eb init -p python-3.11 my-flask-app --region ap-northeast-2
-          eb create my-env-name3  # 새로운 환경 생성
-          eb use my-env-name3  # 새로운 환경을 기본 환경으로 설정
-          eb deploy
+          eb init -p python-3.11 my-eb-app --region ap-northeast-2
+          eb deploy --staged
