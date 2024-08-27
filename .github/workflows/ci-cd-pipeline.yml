@@ -68,12 +68,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 9. 자동으로 수정되지 않은 취약점 확인 및 알림 (남아있는 취약점이 있으면 배포 중단)
+      # 9. snyk_fix_results.json 파일 확인
+      - name: Display snyk_fix_results.json
+        run: cat snyk_fix_results.json
+
+      # 10. 자동으로 수정되지 않은 취약점 확인 및 알림 (남아있는 취약점이 있으면 배포 중단)
       - name: Check for remaining vulnerabilities and notify
         run: |
-          python notify_unresolved_vulnerabilities.py
           if grep -q "vulnerabilities" snyk_results.json; then
             echo "Remaining vulnerabilities detected."
+            python notify_unresolved_vulnerabilities.py
             echo "취약점 확인을 위해 종료"
             exit 1  # 배포 중단을 위해 스크립트 종료
           else
