@@ -84,7 +84,7 @@ jobs:
           git config --local user.name "KKamgui-0"
           git add fixed_code.py
           git commit -m "Auto-fixed vulnerabilities"
-           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -92,13 +92,20 @@ jobs:
       - name: Trigger Lambda for SNS Notification
         if: env.fixed_code_exists == 'true'
         run: |
-          aws lambda invoke --function-name Vulnerability_Discovered --payload fileb://fixed_code.py response.json
+          python -c "
+import json
+with open('fixed_code.py', 'r') as file:
+    code_content = file.read()
+payload = {'modified_code': code_content}
+with open('payload.json', 'w') as json_file:
+    json.dump(payload, json_file)
+"
+          aws lambda invoke --function-name Vulnerability_Discovered --payload fileb://payload.json response.json
           cat response.json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
-
 
   deploy:
     runs-on: ubuntu-latest
