@@ -45,43 +45,48 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      # 7. 취약점이 있는지 확인하고, 있다면 수정 후 GitHub에 커밋
-      - name: Check for vulnerabilities and fix if found
+      # 7. 수정되지 않은 취약점 확인 및 알림 (남아있는 취약점이 있으면 배포 중단)
+      - name: Check for remaining vulnerabilities and notify
         run: |
           if grep -q "vulnerabilities" snyk_results.json; then
-            snyk code fix --file=app.py --json > snyk_fix_results.json
-            echo "snyk_fix_results.json file location:"
-            find $(pwd) -name snyk_fix_results.json
-            git config --local user.email "kkamagui.0@gmail.com"
-            git config --local user.name "kkamagui-0"
-            git add .
-            git commit -m "Auto-fixed vulnerabilities in app.py"
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KKamagui-0/Project_Joleeus.git HEAD:master
+            echo "Remaining vulnerabilities detected."
+            python notify_unresolved_vulnerabilities.py  # 알림을 보내는 스크립트
+            echo "취약점 확인을 위해 종료"
+            exit 1  # 배포 중단을 위해 스크립트 종료
           else
-            echo "No vulnerabilities found."
+            echo "No remaining vulnerabilities."
           fi
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+          SNS_TOPIC_ARN: ${{ secrets.SNS_TOPIC_ARN }}
 
-      # 8. Elastic Beanstalk에 배포
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test-and-scan
+    if: success()  # 취약점이 없을 때만 배포
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up AWS Elastic Beanstalk CLI
+        run: |
+          pip install awsebcli
+
+      - name: Initialize Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+        run: |
+          eb init -p python-3.11 joleeus-env --region ap-northeast-2
+
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-northeast-2"
         run: |
-          pip install awsebcli
-          eb init -p python-3.11 joleeus-env --region ap-northeast-2
           eb deploy
-
-      # 9. 취약점 수정 여부에 따라 SNS 알림 발송
-      - name: Trigger Lambda for SNS Notification
-        if: steps.snyk_scan.outputs.vulnerabilities-found == 'true'
-        run: |
-          aws lambda invoke --function-name Vulnerability_Discovered --payload fileb://payload.json response.json
-          cat response.json
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ap-northeast-2"
